@@ -20,7 +20,7 @@ jobs: # Agrupa tareas automatizadas.
 
       - name: Install dependencies
         run: |  # Ejecuta comandos en la terminal. # Instala las dependencias del proyecto.(linea de abajo)
-          pip install -r requirements.txt 
+          pip install -r backend/requirements.txt 
 
       - name: Run Tests
         run: | # Ejecuta pruebas con pytest para asegurar que el código funciona antes de continuar.
