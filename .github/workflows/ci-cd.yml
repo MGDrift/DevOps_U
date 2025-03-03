@@ -22,6 +22,12 @@ jobs: # Agrupa tareas automatizadas.
         run: |  # Ejecuta comandos en la terminal. # Instala las dependencias del proyecto.(linea de abajo)
           pip install -r backend/requirements.txt 
 
+      - name: Install pytest manually (por si acaso)
+        run: pip install pytest
+
+      - name: Verify pytest installation
+        run: pytest --version
+
       - name: Run Tests
         run: | # Ejecuta pruebas con pytest para asegurar que el código funciona antes de continuar.
           pytest 
