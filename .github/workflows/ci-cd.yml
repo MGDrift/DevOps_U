@@ -1,0 +1,54 @@
+name: CI/CD Pipeline #Nombre del pipeline. Aparecerá en la sección de Actions de GitHub.
+
+on: # Define cuándo se ejecuta el pipeline.
+  push: # Se ejecuta cuando se suben cambios (git push).
+    branches: # Solo se activa si los cambios son en la rama main.
+      - main
+
+jobs: # Agrupa tareas automatizadas.
+  build:  # Define un job llamado "build".
+    runs-on: ubuntu-latest # Indica que este job se ejecuta en un servidor con Ubuntu.
+
+    steps:  # Lista de tareas dentro del job.
+      - name: Checkout Code #  Nombre del paso.
+        uses: actions/checkout@v3 # Descarga el código del repositorio en la máquina virtual.
+
+      - name: Set up Python # Instala Python en la máquina virtual.
+        uses: actions/setup-python@v3
+        with: # Permite configurar parámetros, en este caso, la versión 3.9.
+          python-version: "3.9"
+
+      - name: Install dependencies
+        run: |  # Ejecuta comandos en la terminal. # Instala las dependencias del proyecto.(linea de abajo)
+          pip install -r requirements.txt 
+
+      - name: Run Tests
+        run: | # Ejecuta pruebas con pytest para asegurar que el código funciona antes de continuar.
+          pytest 
+
+  docker: # Define un nuevo job.
+    needs: build  # Este job solo se ejecutará si el build fue exitoso.
+    runs-on: ubuntu-latest  # Se ejecuta en un entorno Ubuntu.
+
+    steps: #  Inicia sesión en Docker Hub usando credenciales guardadas en secrets de GitHub.
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build and Push Docker Image
+        run: | #Construye la imagen Docker y Sube la imagen a Docker Hub
+          docker build -t tu_usuario/tu_app:latest . 
+          docker push tu_usuario/tu_app:latest
+
+  deploy: # Este job solo se ejecuta si el job docker fue exitoso. Y se ejecuta en ubuntu
+    needs: docker
+    runs-on: ubuntu-latest
+
+    steps: # Se conecta por SSH a un servidor. Descarga la última imagen Docker (docker pull). Ejecuta docker-compose up -d para correr la aplicación en el servidor.
+      - name: Deploy to Server
+        run: |
+          ssh usuario@tu_servidor "docker pull tu_usuario/tu_app:latest && docker-compose up -d"
+
+  # ✅ build: Instala dependencias y ejecuta pruebas.
+  # ✅ docker: Construye y sube la imagen Docker a Docker Hub.  
+  # ✅ deploy: Extrae la imagen y la ejecuta en un servidor.
+  
