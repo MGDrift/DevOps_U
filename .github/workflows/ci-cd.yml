@@ -54,8 +54,8 @@ jobs: # Agrupa tareas automatizadas.
 
     steps: # Se conecta por SSH a un servidor. Descarga la última imagen Docker (docker pull). Ejecuta docker-compose up -d para correr la aplicación en el servidor.
       - name: Deploy to Server
-    run: |
-      ssh root@${{ secrets.SERVER_IP }} "docker pull drift12/todo-app:latest && docker-compose up -d"
+        run: |
+          ssh root@${{ secrets.SERVER_IP }} "docker pull drift12/todo-app:latest && docker-compose up -d"
 
 
   # ✅ build: Instala dependencias y ejecuta pruebas.
