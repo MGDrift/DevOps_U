@@ -37,21 +37,11 @@ jobs: # Agrupa tareas automatizadas.
     runs-on: ubuntu-latest  # Se ejecuta en un entorno Ubuntu.
 
     steps: #  Inicia sesión en Docker Hub usando credenciales guardadas en secrets de GitHub.
-      - uses: actions/checkout@v4
-      - name: Debug Secrets #Debuguea el usuario y contraseña que tanta lidia estan dando en con los secrets
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: |
-          echo "DOCKER_USERNAME: $DOCKER_USERNAME"
-          echo "DOCKER_PASSWORD: $DOCKER_PASSWORD" | wc -c
-
       - name: Log in to Docker Hub
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: | 
-          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
       - name: Build and Push Docker Image
         run: | #Construye la imagen Docker y Sube la imagen a Docker Hub
