@@ -37,6 +37,7 @@ jobs: # Agrupa tareas automatizadas.
     runs-on: ubuntu-latest  # Se ejecuta en un entorno Ubuntu.
 
     steps: #  Inicia sesión en Docker Hub usando credenciales guardadas en secrets de GitHub.
+      - uses: actions/checkout@v4
       - name: Debug Secrets #Debuguea el usuario y contraseña que tanta lidia estan dando en con los secrets
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
