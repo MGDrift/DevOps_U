@@ -11,6 +11,7 @@ jobs:
   build:
     name: Build Docker image and push to repositories
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
       - name: Checkout code
