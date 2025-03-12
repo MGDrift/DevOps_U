@@ -47,23 +47,32 @@ COLLECTION_NAME = "todo_lists"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup:
-    client = AsyncIOMotorClient(MONGODB_URI)
-    database = client.get_default_database()
+    try:
+        print(f"🔍 Conectando a MongoDB con URI: {repr(MONGODB_URI)}")
 
-    # Ensure the database is available:
-    pong = await database.command("ping")
-    if int(pong["ok"]) != 1:
-        raise Exception("Cluster connection is not okay!")
+        client = AsyncIOMotorClient(MONGODB_URI)
+        database = client.get_default_database()
 
-    todo_lists = database.get_collection(COLLECTION_NAME)
-    app.todo_dal = ToDoDAL(todo_lists)
+        # Prueba la conexión con MongoDB
+        pong = await database.command("ping")
+        if int(pong["ok"]) != 1:
+            raise Exception("❌ Error: No se pudo conectar al clúster de MongoDB.")
 
-    # Yield back to FastAPI Application:
-    yield
+        todo_lists = database.get_collection(COLLECTION_NAME)
+        app.todo_dal = ToDoDAL(todo_lists)
 
-    # Shutdown:
-    client.close()
+        print("✅ Conexión a MongoDB establecida con éxito.")
+
+        yield  # Permite que FastAPI siga ejecutándose
+
+    except Exception as e:
+        print(f"❌ ERROR EN LIFESPAN: {e}")
+        raise  # Relanza la excepción para ver el error en los logs
+
+    finally:
+        print("🔻 Cerrando conexión con MongoDB")
+        client.close()
+
 
 
 app = FastAPI(lifespan=lifespan, debug=DEBUG)
@@ -149,14 +158,13 @@ async def get_dummy() -> DummyResponse:
     )
 
 
-def main(argv=sys.argv[1:]):
+def main():
     try:
-        uvicorn.run("server:app", host="0.0.0.0", port=3001, reload=DEBUG)
+        uvicorn.run("server:app", host="0.0.0.0", port=3001, reload=True)
     except KeyboardInterrupt:
-        pass
-
+        print("🛑 Servidor detenido manualmente.")
 
 if __name__ == "__main__":
     main()
 
-print("MONGODB_URI:", MONGODB_URI)  # Agrega esto temporalmente
+
