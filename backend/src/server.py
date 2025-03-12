@@ -11,6 +11,18 @@ import uvicorn
 
 from dal import ToDoDAL, ListSummary, ToDoList
 
+from dotenv import load_dotenv
+import os
+
+# Cargar variables del archivo .env
+load_dotenv()
+
+# Obtener la URI
+MONGODB_URI = os.getenv("MONGODB_URI")
+
+# Verificar si se cargó correctamente
+print("MONGODB_URI:", MONGODB_URI)  # <-- Esto imprimirá la URI o "None"
+
 COLLECTION_NAME = "todo_lists"
 MONGODB_URI = os.environ["MONGODB_URI"]
 DEBUG = os.environ.get("DEBUG", "").strip().lower() in {"1", "true", "on", "yes"}
@@ -129,3 +141,5 @@ def main(argv=sys.argv[1:]):
 
 if __name__ == "__main__":
     main()
+
+print("MONGODB_URI:", MONGODB_URI)  # Agrega esto temporalmente
