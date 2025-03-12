@@ -35,7 +35,7 @@ jobs: # Agrupa tareas automatizadas.
   docker: # Define un nuevo job.
     needs: build  # Este job solo se ejecutará si el build fue exitoso.
     runs-on: ubuntu-latest  # Se ejecuta en un entorno Ubuntu.
-    environment: production
+    environment: production  # Ambiente donde se encuentran los secrets
 
     steps: #  Inicia sesión en Docker Hub usando credenciales guardadas en secrets de GitHub.
       - name: Log in to Docker Hub
