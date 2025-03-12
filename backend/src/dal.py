@@ -71,7 +71,7 @@ class ToDoDAL:
         return str(response.inserted_id)
     
     async def get_todo_list(self, id: str | ObjectId, session=None) -> ToDoList: 
-        doc = await self._todo_collection.find_one(
+        doc = await self.__todo_collection.find_one(
             {"_id": ObjectId(id)},
             session=session,
         )
@@ -79,7 +79,7 @@ class ToDoDAL:
     
 
     async def delete_todo_list(self, id: str | ObjectId, session=None) -> bool: 
-        response = await self._todo_collection.delete_one(
+        response = await self.__todo_collection.delete_one(
             {"_id": ObjectId(id)},
             session=session,
         )
@@ -91,7 +91,7 @@ class ToDoDAL:
         label: str,
         session=None,
     ) -> ToDoList | None:
-        result = await self._todo_collection.find_one_and_update(
+        result = await self.__todo_collection.find_one_and_update(
             {"_id": ObjectId(id)},
             {
                 "$push": {
@@ -118,7 +118,7 @@ class ToDoDAL:
         session=None,
     ) -> ToDoList | None:
 
-        result = await self._todo_collection.find_one_and_update(
+        result = await self.__todo_collection.find_one_and_update(
             {"_id": ObjectId(doc_id), "items.id": item_id},
             {"$set": {"items.$.checked": checked_state}},
             session=session,
@@ -135,7 +135,7 @@ class ToDoDAL:
         session=None,
     ) -> ToDoList | None:
 
-        result = await self._todo_collection.find_one_and_update(
+        result = await self.__todo_collection.find_one_and_update(
             {"_id": ObjectId(doc_id)},
             {"$pull": {"items": {"id": item_id}}},
             session=session,
