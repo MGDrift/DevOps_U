@@ -14,17 +14,16 @@ from dal import ToDoDAL, ListSummary, ToDoList
 from dotenv import load_dotenv
 import os
 
-# Cargar variables del archivo .env
-load_dotenv()
+from dotenv import load_dotenv
+import os
 
-# Obtener la URI
+load_dotenv(dotenv_path="D:/semestre 10/DevOps/ToDoProject/backend/.env")
+
 MONGODB_URI = os.getenv("MONGODB_URI")
-
-# Verificar si se cargó correctamente
-print("MONGODB_URI:", MONGODB_URI)  # <-- Esto imprimirá la URI o "None"
+print(f"MONGODB_URI: {repr(MONGODB_URI)}")  # <-- Imprime la URI correctamente
 
 COLLECTION_NAME = "todo_lists"
-MONGODB_URI = os.environ["MONGODB_URI"]
+#MONGODB_URI = os.environ["MONGODB_URI"]
 DEBUG = os.environ.get("DEBUG", "").strip().lower() in {"1", "true", "on", "yes"}
 
 
