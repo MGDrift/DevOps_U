@@ -38,11 +38,10 @@ jobs: # Agrupa tareas automatizadas.
 
     steps: #  Inicia sesión en Docker Hub usando credenciales guardadas en secrets de GitHub.
       - name: Log in to Docker Hub
-        uses: MGDrift/github-action-ssh@release
-        with:
+        env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        command: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+        run: echo "Dockerbaconburger_1208" | docker login -u "drift12" --password-stdin
 
       - name: Build and Push Docker Image
         run: | #Construye la imagen Docker y Sube la imagen a Docker Hub
