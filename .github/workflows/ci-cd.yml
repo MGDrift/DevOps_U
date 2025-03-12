@@ -38,6 +38,7 @@ jobs: # Agrupa tareas automatizadas.
 
     steps: #  Inicia sesión en Docker Hub usando credenciales guardadas en secrets de GitHub.
       - name: Log in to Docker Hub
+        uses: MGDrift/github-action-ssh@release
         with:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
