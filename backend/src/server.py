@@ -10,20 +10,29 @@ from pydantic import BaseModel
 import uvicorn
 
 from dal import ToDoDAL, ListSummary, ToDoList
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 import os
 
-# Cargar las variables de entorno desde el archivo .env con ruta absoluta
-load_dotenv(dotenv_path="D:/semestre 10/DevOps/ToDoProject/backend/.env")
+# Encuentra el .env automáticamente
+dotenv_path = find_dotenv()
+
+if not dotenv_path:
+    print("⚠ ERROR: No se encontró el archivo .env")
+else:
+    print(f"✅ Archivo .env encontrado en: {dotenv_path}")
+
+# Cargar las variables de entorno
+load_dotenv(dotenv_path)
 
 # Obtener la URI de MongoDB
 MONGODB_URI = os.getenv("MONGODB_URI")
 
-# Verificar si se cargó correctamente
-print(f"MONGODB_URI: {repr(MONGODB_URI)}")  # Debería imprimir la URI o 'None' si no se encuentra
+# Imprimir para verificar
+print(f"MONGODB_URI: {repr(MONGODB_URI)}")
 
-COLLECTION_NAME = "todo_lists"
-DEBUG = os.getenv("DEBUG", "").strip().lower() in {"1", "true", "on", "yes"}
+if not MONGODB_URI:
+    raise RuntimeError("❌ ERROR: MONGODB_URI no está definido. Verifica el archivo .env")
+
 
 
 
