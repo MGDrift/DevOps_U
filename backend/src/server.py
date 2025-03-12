@@ -10,30 +10,39 @@ from pydantic import BaseModel
 import uvicorn
 
 from dal import ToDoDAL, ListSummary, ToDoList
+
 from dotenv import load_dotenv, find_dotenv
 import os
 
-# Encuentra el .env automáticamente
+# Buscar automáticamente el archivo .env
 dotenv_path = find_dotenv()
 
-if not dotenv_path:
-    print("⚠ ERROR: No se encontró el archivo .env")
-else:
+if dotenv_path:
     print(f"✅ Archivo .env encontrado en: {dotenv_path}")
+    load_dotenv(dotenv_path)
+else:
+    print("⚠ ERROR: No se encontró el archivo .env")
 
-# Cargar las variables de entorno
-load_dotenv(dotenv_path)
+# También intenta cargar desde una ruta específica por si find_dotenv falla
+alt_dotenv_path = "D:/semestre 10/DevOps/ToDoProject/backend/.env"
+if os.path.exists(alt_dotenv_path):
+    load_dotenv(alt_dotenv_path)
+    print(f"✅ Archivo .env cargado desde: {alt_dotenv_path}")
 
 # Obtener la URI de MongoDB
 MONGODB_URI = os.getenv("MONGODB_URI")
 
-# Imprimir para verificar
-print(f"MONGODB_URI: {repr(MONGODB_URI)}")
-
+# Verificar si se cargó correctamente
 if not MONGODB_URI:
     raise RuntimeError("❌ ERROR: MONGODB_URI no está definido. Verifica el archivo .env")
+else:
+    print(f"MONGODB_URI: {repr(MONGODB_URI)}")  # Imprimir para verificar
 
+# Otras variables de entorno
+DEBUG = os.getenv("DEBUG", "false").strip().lower() in {"1", "true", "on", "yes"}
 
+# Nombre de la colección en MongoDB
+COLLECTION_NAME = "todo_lists"
 
 
 @asynccontextmanager
