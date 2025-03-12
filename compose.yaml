@@ -36,5 +36,6 @@ services:
     environment:
       - DEBUG=true
     env_file:
+      - .env # ni se para que le agrego esto, es redundate
       - path: ./.env
         required: true

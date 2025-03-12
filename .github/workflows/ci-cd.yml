@@ -62,3 +62,4 @@ jobs: # Agrupa tareas automatizadas.
   # ✅ docker: Construye y sube la imagen Docker a Docker Hub.  
   # ✅ deploy: Extrae la imagen y la ejecuta en un servidor.
   
+#comentario de prueba para hacer commit en vercel
