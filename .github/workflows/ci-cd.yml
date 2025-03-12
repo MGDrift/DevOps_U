@@ -38,18 +38,30 @@ jobs: # Agrupa tareas automatizadas.
     environment: production  # Ambiente donde se encuentran los secrets
 
     steps: #  Inicia sesión en Docker Hub usando credenciales guardadas en secrets de GitHub.
+
+      - name: Checkout Code  # ⬅️ Clona el código antes de hacer cualquier otra cosa
+        uses: actions/checkout@v3
+
       - name: Log in to Docker Hub
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
 
+      - name: Verify backend directory  # 📌 Verifica si 'backend/' realmente existe
+        run: ls -la
+
       - name: Build and Push Docker Image
-        run: | #Construye la imagen Docker y Sube la imagen a Docker Hub
-          ls -la  # 📌 Verifica que 'backend/' realmente existe
-          cd backend || exit 1  # 🚨 Evita errores si la carpeta no existe
-          docker build -t drift12/todo-app:latest .
-          docker push drift12/todo-app:latest
+        run: |
+          if [ -d "backend" ]; then  # 🔍 Verifica si la carpeta existe antes de usarla
+            cd backend
+            docker build -t drift12/todo-app:latest .
+            docker push drift12/todo-app:latest
+          else
+            echo "🚨 ERROR: La carpeta 'backend/' no existe en el repositorio."
+            exit 1
+          fi
+
 
   deploy: # Este job solo se ejecuta si el job docker fue exitoso. Y se ejecuta en ubuntu
     needs: docker
