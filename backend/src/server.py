@@ -10,21 +10,21 @@ from pydantic import BaseModel
 import uvicorn
 
 from dal import ToDoDAL, ListSummary, ToDoList
-
 from dotenv import load_dotenv
 import os
 
-from dotenv import load_dotenv
-import os
-
+# Cargar las variables de entorno desde el archivo .env con ruta absoluta
 load_dotenv(dotenv_path="D:/semestre 10/DevOps/ToDoProject/backend/.env")
 
+# Obtener la URI de MongoDB
 MONGODB_URI = os.getenv("MONGODB_URI")
-print(f"MONGODB_URI: {repr(MONGODB_URI)}")  # <-- Imprime la URI correctamente
+
+# Verificar si se cargó correctamente
+print(f"MONGODB_URI: {repr(MONGODB_URI)}")  # Debería imprimir la URI o 'None' si no se encuentra
 
 COLLECTION_NAME = "todo_lists"
-#MONGODB_URI = os.environ["MONGODB_URI"]
-DEBUG = os.environ.get("DEBUG", "").strip().lower() in {"1", "true", "on", "yes"}
+DEBUG = os.getenv("DEBUG", "").strip().lower() in {"1", "true", "on", "yes"}
+
 
 
 @asynccontextmanager
