@@ -41,7 +41,7 @@ jobs: # Agrupa tareas automatizadas.
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: echo "Dockerbaconburger_1208" | docker login -u "drift12" --password-stdin
+        run: echo "Dockerbaconburger_1208" | docker login -u "manuelguzmannavas@gmail.com" --password-stdin
 
       - name: Build and Push Docker Image
         run: | #Construye la imagen Docker y Sube la imagen a Docker Hub
