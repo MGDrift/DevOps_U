@@ -46,7 +46,7 @@ jobs: # Agrupa tareas automatizadas.
 
       - name: Build and Push Docker Image
         run: | #Construye la imagen Docker y Sube la imagen a Docker Hub
-          docker build -t drift12/todo-app:latest -f backend/Dockerfile
+          docker build -t mgdrift/todo-app:latest -f backend/Dockerfile backend/
           docker push drift12/todo-app:latest
 
   deploy: # Este job solo se ejecuta si el job docker fue exitoso. Y se ejecuta en ubuntu
