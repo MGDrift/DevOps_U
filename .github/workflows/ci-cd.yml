@@ -1,40 +1,65 @@
-name: Docker Image build
+name: CI/CD Pipeline #Nombre del pipeline. Aparecerá en la sección de Actions de GitHub.
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+on: # Define cuándo se ejecuta el pipeline.
+  push: # Se ejecuta cuando se suben cambios (git push).
+    branches: # Solo se activa si los cambios son en la rama main.
+      - main
 
-jobs:
+jobs: # Agrupa tareas automatizadas.
+  build:  # Define un job llamado "build".
+    runs-on: ubuntu-latest # Indica que este job se ejecuta en un servidor con Ubuntu.
 
-  build:
-    name: Build Docker image and push to repositories
+    steps:  # Lista de tareas dentro del job.
+      - name: Checkout Code #  Nombre del paso.
+        uses: actions/checkout@v3 # Descarga el código del repositorio en la máquina virtual.
+
+      - name: Set up Python # Instala Python en la máquina virtual.
+        uses: actions/setup-python@v3
+        with: # Permite configurar parámetros, en este caso, la versión 3.9.
+          python-version: "3.9"
+
+      - name: Install dependencies
+        run: |  # Ejecuta comandos en la terminal. # Instala las dependencias del proyecto.(linea de abajo)
+          pip install -r backend/requirements.txt 
+
+      - name: Install pytest manually (por si acaso)
+        run: pip install pytest
+
+      - name: Verify pytest installation
+        run: pytest --version
+
+      - name: Run Tests
+        run: | # Ejecuta pruebas con pytest para asegurar que el código funciona antes de continuar.
+          pytest 
+
+  docker: # Define un nuevo job.
+    needs: build  # Este job solo se ejecutará si el build fue exitoso.
+    runs-on: ubuntu-latest  # Se ejecuta en un entorno Ubuntu.
+
+    steps: #  Inicia sesión en Docker Hub usando credenciales guardadas en secrets de GitHub.
+      - name: Log in to Docker Hub
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: echo "$DOCKER_PASSWORD" | docker login -u $DOCKER_USERNAME --password-stdin
+
+      - name: Build and Push Docker Image
+        run: | #Construye la imagen Docker y Sube la imagen a Docker Hub
+          docker build -t drift12/todo-app:latest . 
+          docker push drift12/todo-app:latest
+
+  deploy: # Este job solo se ejecuta si el job docker fue exitoso. Y se ejecuta en ubuntu
+    needs: docker
     runs-on: ubuntu-latest
-    environment: production
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    steps: # Se conecta por SSH a un servidor. Descarga la última imagen Docker (docker pull). Ejecuta docker-compose up -d para correr la aplicación en el servidor.
+      - name: Deploy to Server
+        run: |
+          ssh root@${{ secrets.SERVER_IP }} "docker pull drift12/todo-app:latest && docker-compose up -d"
+
+
+  # ✅ build: Instala dependencias y ejecuta pruebas.
+  # ✅ docker: Construye y sube la imagen Docker a Docker Hub.  
+  # ✅ deploy: Extrae la imagen y la ejecuta en un servidor.
   
-      - name: login to hub  
-        uses: docker/login-action@v2
-        with:
-          Username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          
-      - name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: MGDrift/DevOps_U:latest
-          
-      - name: deploying
-        uses: appleboy/ssh-action@v0.1.8
-        with:
-          script: |
-            docker image pull MGDrift/DevOps_U:latest
-            docker container stop DevOps_U
-            docker container rm DevOps_U
-            docker container run -d --name DevOps_U -p 80:5000 MGDrift/DevOps_U
+#comentario de prueba para hacer commit en vercel
