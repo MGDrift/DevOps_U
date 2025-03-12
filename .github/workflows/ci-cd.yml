@@ -46,7 +46,8 @@ jobs: # Agrupa tareas automatizadas.
 
       - name: Build and Push Docker Image
         run: | #Construye la imagen Docker y Sube la imagen a Docker Hub
-          cd backend
+          ls -la  # 📌 Verifica que 'backend/' realmente existe
+          cd backend || exit 1  # 🚨 Evita errores si la carpeta no existe
           docker build -t drift12/todo-app:latest .
           docker push drift12/todo-app:latest
 
