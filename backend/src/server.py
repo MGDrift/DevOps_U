@@ -12,7 +12,6 @@ import uvicorn
 from dal import ToDoDAL, ListSummary, ToDoList
 
 from dotenv import load_dotenv, find_dotenv
-import os
 
 # Buscar automáticamente el archivo .env
 dotenv_path = find_dotenv()

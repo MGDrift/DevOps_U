@@ -38,7 +38,7 @@ services:
       - "3001"
     ports:
       - "8001:3001"
-    command: "python backend/server.py"
+    command: "python src/server.py"
     environment:
       - DEBUG=true
     env_file:
