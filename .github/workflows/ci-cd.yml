@@ -1,45 +1,36 @@
-name: CI/CD Pipeline #Nombre del pipeline. Aparecerá en la sección de Actions de GitHub.
+name: CI/CD Pipeline
 
-on: # Define cuándo se ejecuta el pipeline.
-  push: # Se ejecuta cuando se suben cambios (git push).
-    branches: # Solo se activa si los cambios son en la rama main.
+on:
+  push:
+    branches:
       - main
+      - staging  # Ejecuta el pipeline cuando haya cambios en staging
 
-jobs: # Agrupa tareas automatizadas.
-  build:  # Define un job llamado "build".
-    runs-on: ubuntu-latest # Indica que este job se ejecuta en un servidor con Ubuntu.
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    steps:  # Lista de tareas dentro del job.
-      - name: Checkout Code #  Nombre del paso.
-        uses: actions/checkout@v3 # Descarga el código del repositorio en la máquina virtual.
-
-      - name: Set up Python # Instala Python en la máquina virtual.
+      - name: Set up Python
         uses: actions/setup-python@v3
-        with: # Permite configurar parámetros, en este caso, la versión 3.9.
+        with:
           python-version: "3.9"
 
       - name: Install dependencies
-        run: |  # Ejecuta comandos en la terminal. # Instala las dependencias del proyecto.(linea de abajo)
-          pip install -r backend/requirements.txt 
-
-      - name: Install pytest manually (por si acaso)
-        run: pip install pytest
-
-      - name: Verify pytest installation
-        run: pytest --version
+        run: pip install -r backend/requirements.txt 
 
       - name: Run Tests
-        run: | # Ejecuta pruebas con pytest para asegurar que el código funciona antes de continuar.
-          pytest 
+        run: pytest 
 
-  docker: # Define un nuevo job.
-    needs: build  # Este job solo se ejecutará si el build fue exitoso.
-    runs-on: ubuntu-latest  # Se ejecuta en un entorno Ubuntu.
-    environment: production  # Ambiente donde se encuentran los secrets
+  docker:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
 
-    steps: #  Inicia sesión en Docker Hub usando credenciales guardadas en secrets de GitHub.
-
-      - name: Checkout Code  # ⬅️ Clona el código antes de hacer cualquier otra cosa
+    steps:
+      - name: Checkout Code
         uses: actions/checkout@v3
 
       - name: Log in to Docker Hub
@@ -48,29 +39,26 @@ jobs: # Agrupa tareas automatizadas.
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
 
-      - name: Verify backend directory  # 📌 Verifica si 'backend/' realmente existe
-        run: ls -la
-
       - name: Build and Push Docker Image
         run: |
-          if [ -d "backend" ]; then  # 🔍 Verifica si la carpeta existe antes de usarla
-            cd backend
-            docker build -t drift12/todo-app:latest .
-            docker push drift12/todo-app:latest
-          else
-            echo "🚨 ERROR: La carpeta 'backend/' no existe en el repositorio."
-            exit 1
-          fi
+          docker build -t drift12/todo-app:${{ github.ref == 'refs/heads/main' && 'latest' || 'staging' }} .
+          docker push drift12/todo-app:${{ github.ref == 'refs/heads/main' && 'latest' || 'staging' }}
 
-
-  deploy: # Este job solo se ejecuta si el job docker fue exitoso. Y se ejecuta en ubuntu
+  deploy:
     needs: docker
     runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
 
-    steps: # Se conecta por SSH a un servidor. Descarga la última imagen Docker (docker pull). Ejecuta docker-compose up -d para correr la aplicación en el servidor.
+    steps:
       - name: Deploy to Server
+        env:
+          SERVER_IP: ${{ github.ref == 'refs/heads/main' && secrets.SERVER_IP_PROD || secrets.SERVER_IP_STAGING }}
+          MONGODB_URI: ${{ github.ref == 'refs/heads/main' && secrets.MONGODB_URI_PROD || secrets.MONGODB_URI_STAGING }}
         run: |
-          ssh root@${{ secrets.SERVER_IP }} "docker pull drift12/todo-app:latest && docker-compose up -d"
+          ssh root@$SERVER_IP "
+          export MONGODB_URI=$MONGODB_URI &&
+          docker pull drift12/todo-app:${{ github.ref == 'refs/heads/main' && 'latest' || 'staging' }} &&
+          docker-compose up -d"
 
 
   # ✅ build: Instala dependencias y ejecuta pruebas.
