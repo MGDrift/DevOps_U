@@ -11,67 +11,30 @@ import uvicorn
 
 from dal import ToDoDAL, ListSummary, ToDoList
 
-from dotenv import load_dotenv, find_dotenv
-
-# Buscar automáticamente el archivo .env
-dotenv_path = find_dotenv('.env')
-
-if dotenv_path:
-    print(f"✅ Archivo .env encontrado en: {dotenv_path}")
-    load_dotenv(dotenv_path)
-else:
-    print("⚠ ERROR: No se encontró el archivo .env")
-
-# También intenta cargar desde una ruta específica por si find_dotenv falla
-alt_dotenv_path = "D:/semestre 10/DevOps/ToDoProject/backend/.env"
-if os.path.exists(alt_dotenv_path):
-    load_dotenv(alt_dotenv_path)
-    print(f"✅ Archivo .env cargado desde: {alt_dotenv_path}")
-
-# Obtener la URI de MongoDB
-MONGODB_URI = os.getenv("MONGODB_URI")
-
-# Verificar si se cargó correctamente
-if not MONGODB_URI:
-    raise RuntimeError("❌ ERROR: MONGODB_URI no está definido. Verifica el archivo .env")
-else:
-    print(f"MONGODB_URI: {repr(MONGODB_URI)}")  # Imprimir para verificar
-
-# Otras variables de entorno
-DEBUG = os.getenv("DEBUG", "false").strip().lower() in {"1", "true", "on", "yes"}
-
-# Nombre de la colección en MongoDB
 COLLECTION_NAME = "todo_lists"
+MONGODB_URI = os.environ["MONGODB_URI"]
+DEBUG = os.environ.get("DEBUG", "").strip().lower() in {"1", "true", "on", "yes"}
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    try:
-        print(f"🔍 Conectando a MongoDB con URI: {repr(MONGODB_URI)}")
+    # Startup:
+    client = AsyncIOMotorClient(MONGODB_URI)
+    database = client.get_default_database()
 
-        client = AsyncIOMotorClient(MONGODB_URI)
-        database = client.get_default_database()
+    # Ensure the database is available:
+    pong = await database.command("ping")
+    if int(pong["ok"]) != 1:
+        raise Exception("Cluster connection is not okay!")
 
-        # Prueba la conexión con MongoDB
-        pong = await database.command("ping")
-        if int(pong["ok"]) != 1:
-            raise Exception("❌ Error: No se pudo conectar al clúster de MongoDB.")
+    todo_lists = database.get_collection(COLLECTION_NAME)
+    app.todo_dal = ToDoDAL(todo_lists)
 
-        todo_lists = database.get_collection(COLLECTION_NAME)
-        app.todo_dal = ToDoDAL(todo_lists)
+    # Yield back to FastAPI Application:
+    yield
 
-        print("✅ Conexión a MongoDB establecida con éxito.")
-
-        yield  # Permite que FastAPI siga ejecutándose
-
-    except Exception as e:
-        print(f"❌ ERROR EN LIFESPAN: {e}")
-        raise  # Relanza la excepción para ver el error en los logs
-
-    finally:
-        print("🔻 Cerrando conexión con MongoDB")
-        client.close()
-
+    # Shutdown:
+    client.close()
 
 
 app = FastAPI(lifespan=lifespan, debug=DEBUG)
@@ -157,13 +120,12 @@ async def get_dummy() -> DummyResponse:
     )
 
 
-def main():
+def main(argv=sys.argv[1:]):
     try:
-        uvicorn.run("server:app", host="0.0.0.0", port=3001, reload=True)
+        uvicorn.run("server:app", host="0.0.0.0", port=3001, reload=DEBUG)
     except KeyboardInterrupt:
-        print("🛑 Servidor detenido manualmente.")
+        pass
+
 
 if __name__ == "__main__":
     main()
-
-
