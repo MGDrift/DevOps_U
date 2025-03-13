@@ -10,10 +10,11 @@ from pydantic import BaseModel
 import uvicorn
 
 from dal import ToDoDAL, ListSummary, ToDoList
+
 from dotenv import load_dotenv, find_dotenv
 
-# 🔍 Cargar variables de entorno desde .env
-dotenv_path = find_dotenv()
+# Buscar automáticamente el archivo .env
+dotenv_path = find_dotenv('.env')
 
 if dotenv_path:
     print(f"✅ Archivo .env encontrado en: {dotenv_path}")
@@ -21,60 +22,61 @@ if dotenv_path:
 else:
     print("⚠ ERROR: No se encontró el archivo .env")
 
-# Intento alternativo por si `find_dotenv` falla
-alt_dotenv_path = "D:/semestre 10/DevOps/ToDoProject/backend/.env"
+# También intenta cargar desde una ruta específica por si find_dotenv falla
+alt_dotenv_path = "D:/semestre 10/DevOps/ToDoProject"
 if os.path.exists(alt_dotenv_path):
     load_dotenv(alt_dotenv_path)
     print(f"✅ Archivo .env cargado desde: {alt_dotenv_path}")
 
-# 📌 Obtener y validar la URI de MongoDB
+# Obtener la URI de MongoDB
 MONGODB_URI = os.getenv("MONGODB_URI")
 
-if not MONGODB_URI or not (MONGODB_URI.startswith("mongodb://") or MONGODB_URI.startswith("mongodb+srv://")):
-    raise RuntimeError(f"❌ ERROR: MONGODB_URI no es válida o no está definida. Valor actual: {repr(MONGODB_URI)}")
+# Verificar si se cargó correctamente
+if not MONGODB_URI:
+    raise RuntimeError("❌ ERROR: MONGODB_URI no está definido. Verifica el archivo .env")
+else:
+    print(f"MONGODB_URI: {repr(MONGODB_URI)}")  # Imprimir para verificar
 
-print(f"📢 Usando MONGODB_URI: {MONGODB_URI}")  # Depuración
-
-# 🔹 Otras variables de entorno
+# Otras variables de entorno
 DEBUG = os.getenv("DEBUG", "false").strip().lower() in {"1", "true", "on", "yes"}
+
+# Nombre de la colección en MongoDB
 COLLECTION_NAME = "todo_lists"
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    client = None
     try:
-        print(f"🔍 Conectando a MongoDB con URI: {MONGODB_URI}")
+        print(f"🔍 Conectando a MongoDB con URI: {repr(MONGODB_URI)}")
 
         client = AsyncIOMotorClient(MONGODB_URI)
         database = client.get_default_database()
 
-        # 📌 Prueba la conexión
+        # Prueba la conexión con MongoDB
         pong = await database.command("ping")
         if int(pong["ok"]) != 1:
-            raise Exception("❌ Error: No se pudo conectar a MongoDB.")
+            raise Exception("❌ Error: No se pudo conectar al clúster de MongoDB.")
 
         todo_lists = database.get_collection(COLLECTION_NAME)
         app.todo_dal = ToDoDAL(todo_lists)
 
         print("✅ Conexión a MongoDB establecida con éxito.")
 
-        yield  # Mantiene FastAPI en ejecución
+        yield  # Permite que FastAPI siga ejecutándose
 
     except Exception as e:
         print(f"❌ ERROR EN LIFESPAN: {e}")
-        raise  # Relanza la excepción
+        raise  # Relanza la excepción para ver el error en los logs
 
     finally:
-        if client:
-            print("🔻 Cerrando conexión con MongoDB")
-            client.close()
+        print("🔻 Cerrando conexión con MongoDB")
+        client.close()
 
 
-# 🔥 Inicializar FastAPI con el ciclo de vida configurado
+
 app = FastAPI(lifespan=lifespan, debug=DEBUG)
 
-# Definición de endpoints
+
 @app.get("/api/lists")
 async def get_all_lists() -> list[ListSummary]:
     return [i async for i in app.todo_dal.list_todo_lists()]
