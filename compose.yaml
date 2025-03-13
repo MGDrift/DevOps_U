@@ -9,6 +9,9 @@ services:
     depends_on:
       - backend
       - frontend
+    networks:
+      - todo-network
+
   frontend:
     image: "node:22"
     user: "node"
@@ -23,6 +26,9 @@ services:
     ports:
       - "3000:3000"
     command: "npm start"
+    networks:
+      - todo-network
+
   backend:
     image: todo-app/backend
     build: ./backend
@@ -32,10 +38,14 @@ services:
       - "3001"
     ports:
       - "8001:3001"
-    command: "python src/server.py"
+    command: "python backend/server.py"
     environment:
       - DEBUG=true
     env_file:
-      - .env # ni se para que le agrego esto, es redundate
-      - path: ./.env
-        required: true
+      - .env # redundancia pero hay que probar
+    networks:
+      - todo-network
+
+networks:
+  todo-network:
+    driver: bridge
