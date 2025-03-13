@@ -19,7 +19,7 @@ jobs:
           python-version: "3.9"
 
       - name: Install dependencies
-        run: pip install -r ../../backend/requirements.txt 
+        run: pip install -r backend/requirements.txt 
 
       - name: Run Tests
         run: pytest 
@@ -68,4 +68,3 @@ jobs:
 #comentario de prueba para hacer commit en vercel
 #pussh para probar el despliegue en actions
 # prueba del entorno de pruebas (comentariopara esto)
-#prueba
