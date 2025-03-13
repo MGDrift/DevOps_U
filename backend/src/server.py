@@ -14,7 +14,7 @@ from dal import ToDoDAL, ListSummary, ToDoList
 from dotenv import load_dotenv, find_dotenv
 
 # Buscar automáticamente el archivo .env
-dotenv_path = find_dotenv()
+dotenv_path = find_dotenv('.env')
 
 if dotenv_path:
     print(f"✅ Archivo .env encontrado en: {dotenv_path}")
