@@ -29,7 +29,8 @@ if os.path.exists(alt_dotenv_path):
     print(f"✅ Archivo .env cargado desde: {alt_dotenv_path}")
 
 # Obtener la URI de MongoDB
-MONGODB_URI = os.getenv("MONGODB_URI")
+# MONGODB_URI = os.getenv("MONGODB_URI")
+MONGODB_URI = 'mongodb+srv://manuelguzmannavas:todoproject@cluster0.w4qh6.mongodb.net/todo?retryWrites=true&w=majority&appName=Cluster0'
 
 # Verificar si se cargó correctamente
 if not MONGODB_URI:
