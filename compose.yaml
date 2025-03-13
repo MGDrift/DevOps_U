@@ -41,6 +41,7 @@ services:
     command: "python src/server.py"
     environment:
       - DEBUG=true
+      - MONGODB_URI=mongodb+srv://manuelguzmannavas:todoproject@cluster0.w4qh6.mongodb.net/todo?retryWrites=true&w=majority&appName=Cluster0
     env_file:
       - .env # redundancia pero hay que probar
     networks:
