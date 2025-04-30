@@ -1,52 +1,78 @@
-name: todo-app
+# name: todo-app
+# services:
+#   nginx:
+#     image: nginx:1.17
+#     volumes:
+#       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+#     ports:
+#       - 8000:80
+#     depends_on:
+#       - backend
+#       - frontend
+#     networks:
+#       - todo-network
+#
+#   frontend:
+#     image: "node:22"
+#     user: "node"
+#     working_dir: /home/node/app
+#     environment:
+#       - NODE_ENV=development
+#       - WDS_SOCKET_PORT=0
+#     volumes:
+#       - ./frontend/:/home/node/app
+#     expose:
+#       - "3000"
+#     ports:
+#       - "3000:3000"
+#     command: "npm start"
+#     networks:
+#       - todo-network
+#
+#   backend:
+#     image: todo-app/backend
+#     build: ./backend
+#     volumes:
+#       - ./backend/:/usr/src/app
+#     expose:
+#       - "3001"
+#     ports:
+#       - "8001:3001"
+#     command: "python src/server.py"
+#     environment:
+#       - DEBUG=true
+#       - MONGODB_URI=mongodb+srv://manuelguzmannavas:todoproject@cluster0.w4qh6.mongodb.net/todo?retryWrites=true&w=majority&appName=Cluster0
+#     env_file:
+#       - .env # redundancia pero hay que probar
+#     networks:
+#       - todo-network
+#
+# networks:
+#   todo-network:
+#     driver: bridge
+
 services:
-  nginx:
-    image: nginx:1.17
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+  api:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
-      - 8000:80
+      - "8000:8000"
     depends_on:
-      - backend
-      - frontend
-    networks:
-      - todo-network
-
-  frontend:
-    image: "node:22"
-    user: "node"
-    working_dir: /home/node/app
+      - redis
     environment:
-      - NODE_ENV=development
-      - WDS_SOCKET_PORT=0
-    volumes:
-      - ./frontend/:/home/node/app
-    expose:
-      - "3000"
-    ports:
-      - "3000:3000"
-    command: "npm start"
+      - REDIS_HOST=redis-fastapi
     networks:
-      - todo-network
+      - redis-fastapi-net
 
-  backend:
-    image: todo-app/backend
-    build: ./backend
-    volumes:
-      - ./backend/:/usr/src/app
-    expose:
-      - "3001"
+  redis:
+    image: redis:latest
+    container_name: redis-fastapi
     ports:
-      - "8001:3001"
-    command: "python src/server.py"
-    environment:
-      - DEBUG=true
-      - MONGODB_URI=mongodb+srv://manuelguzmannavas:todoproject@cluster0.w4qh6.mongodb.net/todo?retryWrites=true&w=majority&appName=Cluster0
-    env_file:
-      - .env # redundancia pero hay que probar
+      - "6380:6379"
     networks:
-      - todo-network
+      - redis-fastapi-net
 
 networks:
-  todo-network:
-    driver: bridge
+  redis-fastapi-net:
+    external: true
